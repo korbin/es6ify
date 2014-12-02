@@ -63,37 +63,37 @@ function compileFile(file, src) {
   return compiled.source + '\n//@ sourceMappingURL=data:application/json;base64,' + comment;
 }
 
-function es6ify(filePattern) {
-  filePattern =  filePattern || /\.js$/;
+function es6ify(file, opts) {
+  opts.filePattern = opts.filePattern || /\.js$/;
+  if(typeof(opts.filePattern) === 'string') {
+    opts.filePattern = new RegExp(opts.filePattern, 'i')
+  }
 
-  return function (file) {
+  // Don't es6ify the traceur runtime
+  if (file === runtime) return through();
 
-    // Don't es6ify the traceur runtime
-    if (file === runtime) return through();
+  if (!opts.filePattern.test(file)) return through();
 
-    if (!filePattern.test(file)) return through();
+  var data = '';
+  return through(write, end);
 
-    var data = '';
-    return through(write, end);
+  function write (buf) { data += buf; }
+  function end () {
+    var hash = getHash(data)
+      , cached = cache[file];
 
-    function write (buf) { data += buf; }
-    function end () {
-      var hash = getHash(data)
-        , cached = cache[file];
-
-      if (!cached || cached.hash !== hash) {
-        try {
-          cache[file] = { compiled: compileFile(file, data), hash: hash };
-        } catch (ex) {
-          this.emit('error', ex);
-          return this.queue(null);
-        }
+    if (!cached || cached.hash !== hash) {
+      try {
+        cache[file] = { compiled: compileFile(file, data), hash: hash };
+      } catch (ex) {
+        this.emit('error', ex);
+        return this.queue(null);
       }
-
-      this.queue(cache[file].compiled);
-      this.queue(null);
     }
-  };
+
+    this.queue(cache[file].compiled);
+    this.queue(null);
+  }
 }
 
 /**
@@ -107,17 +107,7 @@ function es6ify(filePattern) {
  * @function
  * @return {function} function that returns a `TransformStream` when called with a `file`
  */
-exports = module.exports = es6ify();
-
-/**
- * Configurable es6ify transform function that allows specifying the `filePattern` of files to be compiled.
- *
- * @name es6ify::configure
- * @function
- * @param {string=} filePattern (default: `/\.js$/) pattern of files that will be es6ified
- * @return {function} function that returns a `TransformStream` when called with a `file`
- */
-exports.configure = es6ify;
+exports = module.exports = es6ify;
 
 /**
  * The traceur runtime exposed here so it can be included in the bundle via:

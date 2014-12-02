@@ -33,7 +33,6 @@ Find the full version of this example [here](https://github.com/thlorenz/es6ify/
 - [Enabling sourcemaps and related posts](#enabling-sourcemaps-and-related-posts)
 - [API](#api)
 - [Examples](#examples)
-	- [es6ify.configure(filePattern : Regex)](#es6ifyconfigurefilepattern--regex)
 	- [es6ify.traceurOverrides](#es6ifytraceuroverrides)
 - [Caching](#caching)
 - [Source Maps](#source-maps)
@@ -268,24 +267,6 @@ Type
 <!-- END docme generated API please keep comment here to allow auto update -->
 
 ## Examples
-
-### es6ify.configure(filePattern : Regex)
-
-The default file pattern includes all JavaScript files, but you may override it in order to only transform files coming
-from a certain directory, with a specific file name and/or extension, etc.
-
-By configuring the regex to exclude ES5 files, you can optimize the performance of the transform. However transforming
-ES5 JavaScript will work since it is a subset of ES6.
-
-```js
-browserify({ debug: true })
-  .add(require('es6ify').runtime)
-   // compile all .js files except the ones coming from node_modules
-  .transform(require('es6ify').configure(/^(?!.*node_modules)+.+\.js$/))
-  .require(require.resolve('./src/main.js'), { entry: true })
-  .bundle()
-  .pipe(fs.createWriteStream(bundlePath));
-```
 
 ### es6ify.traceurOverrides
 
